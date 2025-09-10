@@ -1,31 +1,31 @@
 volumes:
-  ollama_storage:
+  #ollama_storage:
   open-webui:
   flowise:
 
-x-ollama: &service-ollama
-  image: ollama/ollama:latest
-  container_name: ollama
-  restart: unless-stopped
-  expose:
-    - 11434/tcp
-  environment:
-    - OLLAMA_CONTEXT_LENGTH=8192
-    - OLLAMA_FLASH_ATTENTION=1
-    - OLLAMA_KV_CACHE_TYPE=q8_0
-    - OLLAMA_MAX_LOADED_MODELS=2
-  volumes:
-    - ollama_storage:/root/.ollama
+# x-ollama: &service-ollama
+#   image: ollama/ollama:latest
+#   container_name: ollama
+#   restart: unless-stopped
+#   expose:
+#     - 11434/tcp
+#   environment:
+#     - OLLAMA_CONTEXT_LENGTH=8192
+#     - OLLAMA_FLASH_ATTENTION=1
+#     - OLLAMA_KV_CACHE_TYPE=q8_0
+#     - OLLAMA_MAX_LOADED_MODELS=2
+#   volumes:
+#     - ollama_storage:/root/.ollama
 
-x-init-ollama: &init-ollama
-  image: ollama/ollama:latest
-  container_name: ollama-pull-llama
-  volumes:
-    - ollama_storage:/root/.ollama
-  entrypoint: /bin/sh
-  command:
-    - "-c"
-    - "sleep 3; OLLAMA_HOST=ollama:11434 ollama pull qwen2.5:7b-instruct-q4_K_M; OLLAMA_HOST=ollama:11434 ollama pull nomic-embed-text"
+# x-init-ollama: &init-ollama
+#   image: ollama/ollama:latest
+#   container_name: ollama-pull-llama
+#   volumes:
+#     - ollama_storage:/root/.ollama
+#   entrypoint: /bin/sh
+#   command:
+#     - "-c"
+#     - "sleep 3; OLLAMA_HOST=ollama:11434 ollama pull qwen2.5:7b-instruct-q4_K_M; OLLAMA_HOST=ollama:11434 ollama pull nomic-embed-text"
 
 services:
   flowise:
@@ -55,50 +55,50 @@ services:
     volumes:
       - open-webui:/app/backend/data
 
-  ollama-cpu:
-    profiles: [ "cpu" ]
-    <<: *service-ollama
-    ports:
-      - 127.0.0.1:11434:11434
+  # ollama-cpu:
+  #   profiles: [ "cpu" ]
+  #   <<: *service-ollama
+  #   ports:
+  #     - 127.0.0.1:11434:11434
 
-  ollama-gpu:
-    profiles: [ "gpu-nvidia" ]
-    <<: *service-ollama
-    ports:
-      - 127.0.0.1:11434:11434
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
+  # ollama-gpu:
+  #   profiles: [ "gpu-nvidia" ]
+  #   <<: *service-ollama
+  #   ports:
+  #     - 127.0.0.1:11434:11434
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: 1
+  #             capabilities: [ gpu ]
 
-  ollama-gpu-amd:
-    profiles: [ "gpu-amd" ]
-    <<: *service-ollama
-    image: ollama/ollama:rocm
-    ports:
-      - 127.0.0.1:11434:11434
-    devices:
-      - "/dev/kfd"
-      - "/dev/dri"
+  # ollama-gpu-amd:
+  #   profiles: [ "gpu-amd" ]
+  #   <<: *service-ollama
+  #   image: ollama/ollama:rocm
+  #   ports:
+  #     - 127.0.0.1:11434:11434
+  #   devices:
+  #     - "/dev/kfd"
+  #     - "/dev/dri"
 
-  ollama-pull-llama-cpu:
-    profiles: [ "cpu" ]
-    <<: *init-ollama
-    depends_on:
-      - ollama-cpu
+  # ollama-pull-llama-cpu:
+  #   profiles: [ "cpu" ]
+  #   <<: *init-ollama
+  #   depends_on:
+  #     - ollama-cpu
 
-  ollama-pull-llama-gpu:
-    profiles: [ "gpu-nvidia" ]
-    <<: *init-ollama
-    depends_on:
-      - ollama-gpu
+  # ollama-pull-llama-gpu:
+  #   profiles: [ "gpu-nvidia" ]
+  #   <<: *init-ollama
+  #   depends_on:
+  #     - ollama-gpu
 
-  ollama-pull-llama-gpu-amd:
-    profiles: [ gpu-amd ]
-    <<: *init-ollama
-    image: ollama/ollama:rocm
-    depends_on:
-      - ollama-gpu-amd
+  # ollama-pull-llama-gpu-amd:
+  #   profiles: [ gpu-amd ]
+  #   <<: *init-ollama
+  #   image: ollama/ollama:rocm
+  #   depends_on:
+  #     - ollama-gpu-amd
